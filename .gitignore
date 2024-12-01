@@ -1,1 +1,8 @@
+# node
 node_modules/
+
+# cpp
+*.exe
+*.ilk
+*.obj
+*.pdb
