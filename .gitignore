@@ -6,3 +6,7 @@ node_modules/
 *.ilk
 *.obj
 *.pdb
+
+# haskell
+*.o
+*.hi
