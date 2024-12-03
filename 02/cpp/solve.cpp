@@ -81,10 +81,21 @@ int main()
     }
 
     int safeReports = 0;
+    int safeReportsDampened = 0;
     for (auto report: reports) {
       if (isReportSafe(report)) {
         safeReports++;
+      } else {
+        for (int i = 0; i < report.size(); i++) {
+          std::vector<int> reportDampened = report;
+          reportDampened.erase(reportDampened.begin() + i);
+          if (isReportSafe(reportDampened)) {
+            safeReportsDampened++;
+            break;
+          }
+        }
       }
     }
-    std::cout << "safe reports:" << safeReports << "\n";
+    std::cout << "task1:" << "safe reports:" << safeReports << "\n";
+    std::cout << "task2:" << "safe reports (with dampening):" << safeReports + safeReportsDampened << "\n";
 }
