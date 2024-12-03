@@ -1,0 +1,14 @@
+{
+  "name": "advent-of-code-2024-task-03",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "solve": "npx tsx ./solve.ts ../input.txt"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.10.1"
+  }
+}
