@@ -18,9 +18,17 @@ isSafeStep rest previous wasRising = isDiffSafe (previous - head rest)
 isSafe :: [Int] -> Bool
 isSafe a = isSafeStep (tail a) (head a) (isRising (head a) (a !!1))
 
-sumSafeReports :: [[Int]] -> Int
-sumSafeReports [] = 0
-sumSafeReports reports = (if isSafe (head reports) then 1 else 0) + sumSafeReports (tail reports)
+dropIndex :: [Int] -> Int -> [Int]
+dropIndex array index = take index array ++ drop (index + 1) array
+
+isSafeDampened :: [Int] -> Int -> Bool
+isSafeDampened reports dampenedIndex = (dampenedIndex /= length reports)
+   && (isSafe (dropIndex reports dampenedIndex)
+   || isSafeDampened reports (dampenedIndex + 1))
+
+sumSafeReports :: [[Int]] -> ([Int] -> Bool) -> Int
+sumSafeReports [] isSafe = 0
+sumSafeReports reports isSafe = (if isSafe (head reports) then 1 else 0) + sumSafeReports (tail reports) isSafe
 
 toInts :: [[String]] -> [[Int]]
 toInts = map (map read)
@@ -30,4 +38,7 @@ main = do
    content <- readFile (head args)
    let linesList = map words (lines content)
    let reportsList = toInts linesList
-   print (sumSafeReports reportsList)
+   print "part1:"
+   print (sumSafeReports reportsList isSafe)
+   print "part2:"
+   print (sumSafeReports reportsList (`isSafeDampened` 0))
