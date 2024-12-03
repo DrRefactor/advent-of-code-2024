@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "solve": "npx tsx ./solve.ts ../input.txt"
+    "solve": "echo \"part1:\" && npm run solve:part1 && echo \"part2:\" && npm run solve:part2",
+    "solve:part1": "npx tsx ./solve.ts ../input.txt 0",
+    "solve:part2": "npx tsx ./solve.ts ../input.txt 1"
   },
   "author": "",
   "license": "ISC",
