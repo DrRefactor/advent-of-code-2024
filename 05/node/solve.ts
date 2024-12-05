@@ -84,6 +84,14 @@ function isUpdateSorted(update: Update, ruleMap: RuleMap): boolean {
   return true;
 }
 
+function sortUpdate(update: Update, ruleMap: RuleMap): Update {
+  return update.toSorted((lhs, rhs) => compareUpdateEntry(lhs, rhs, ruleMap));
+}
+
+function sortUpdates(updates: Update[], ruleMap: RuleMap): Update[] {
+  return updates.map((update) => sortUpdate(update, ruleMap));
+}
+
 function getMiddleElement(update: Update): number {
   return update[Math.floor(update.length / 2)];
 }
@@ -96,13 +104,30 @@ function sum(values: number[]): number {
   return values.reduce((r, x) => r + x, 0);
 }
 
-function solve(file: string[]): number {
-  const { rules, updates } = parse(file);
-  const ruleMap = createRuleMap(rules);
-  const correctUpdates = updates.filter((update) =>
+function sumForAlreadyCorrectUpdates(
+  updates: Update[],
+  ruleMap: RuleMap
+): number {
+  const alreadyCorrectUpdates = updates.filter((update) =>
     isUpdateSorted(update, ruleMap)
   );
-  return sum(getMiddleElements(correctUpdates));
+  return sum(getMiddleElements(alreadyCorrectUpdates));
+}
+
+function sumForIncorrectUpdates(updates: Update[], ruleMap: RuleMap): number {
+  const incorrectlySortedUpdates = updates.filter(
+    (update) => !isUpdateSorted(update, ruleMap)
+  );
+  const sortedUpdates = sortUpdates(incorrectlySortedUpdates, ruleMap);
+  return sum(getMiddleElements(sortedUpdates));
+}
+
+function solve(file: string[]) {
+  const { rules, updates } = parse(file);
+  const ruleMap = createRuleMap(rules);
+  const part1 = sumForAlreadyCorrectUpdates(updates, ruleMap);
+  const part2 = sumForIncorrectUpdates(updates, ruleMap);
+  return { part1, part2 };
 }
 
 const file = readFileSync(process.argv[2]).toString().split("\n");
