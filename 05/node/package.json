@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "solve": "npx tsx ./solve.ts ../input.txt"
+    "solve": "npx tsx ./solve.ts ../input.txt",
+    "debug": "npm run solve  --inspect-brk"
   },
   "author": "",
   "license": "ISC",
