@@ -1,0 +1,17 @@
+{
+  "name": "advent-of-code-2024-task-06",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "solve": "npx tsx ./solve.ts ../input.txt",
+    "solve:example": "npx tsx ./solve.ts ../exampleInput.txt",
+    "debug": "npm run solve --inspect-brk",
+    "debug:example": "npm run solve:example --inspect-brk"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^22.10.1"
+  }
+}
