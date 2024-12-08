@@ -3,6 +3,7 @@ import { readFileSync } from "fs";
 const file = readFileSync(process.argv[2]).toString();
 const GUARD = "^";
 const WALL = "#";
+const EMPTY = ".";
 
 type Coordinates = [number, number];
 type Matrix = string[][];
@@ -61,7 +62,11 @@ function traverseInDirection(
   guard: Coordinates,
   matrix: Matrix,
   direction: TraverseDirection
-): { path: Coordinates[]; endPosition: Coordinates | undefined } {
+): {
+  path: Coordinates[];
+  endPosition: Coordinates | undefined;
+  wall: Coordinates | undefined;
+} {
   const [startX, startY] = guard;
   const [deltaX, deltaY] = direction;
 
@@ -75,30 +80,44 @@ function traverseInDirection(
     const nextY = currentY + deltaY;
     const nextChar = matrix[nextX]?.[nextY];
     if (nextChar === WALL) {
-      return { path, endPosition: [currentX, currentY] };
+      return { path, endPosition: [currentX, currentY], wall: [nextX, nextY] };
     }
     char = nextChar;
     currentX = nextX;
     currentY = nextY;
   }
-  return { path, endPosition: undefined };
+  return { path, endPosition: undefined, wall: undefined };
 }
 
-function traverse(guard: Coordinates, matrix: Matrix): Coordinates[] {
+function traverse(
+  guard: Coordinates,
+  matrix: Matrix
+): { path: Coordinates[]; circular: boolean } {
   let direction: TraverseDirection = TraverseDirection.UpDirection;
   let currentPosition = guard;
   let wholePath: Coordinates[] = [];
+  const visitedWalls = new HashSet<{
+    wall: Coordinates;
+    direction: TraverseDirection;
+  }>(({ wall, direction }) => wall.join(",") + ";" + direction.join(","));
   while (currentPosition) {
-    const { path, endPosition } = traverseInDirection(
+    const { path, endPosition, wall } = traverseInDirection(
       currentPosition,
       matrix,
       direction
     );
     wholePath.push(...path);
     currentPosition = endPosition;
+    if (wall) {
+      const setEntry = { wall: wall, direction: direction };
+      if (visitedWalls.has(setEntry)) {
+        return { path: wholePath, circular: true };
+      }
+      visitedWalls.add(setEntry);
+    }
     direction = nextDirection.get(direction);
   }
-  return wholePath;
+  return { path: wholePath, circular: false };
 }
 
 function draw(path: Coordinates[], invertedMatrix: Matrix) {
@@ -136,13 +155,44 @@ function countUniqueCoordinates(path: Coordinates[]): number {
   }, 0);
 }
 
-function solve(file: string) {
-  const { matrix, invertedMartix } = parse(file);
+function solvePart1(file: string) {
+  const { matrix } = parse(file);
   const guardCoords = findGuard(matrix);
-  const guardPath = traverse(guardCoords, matrix);
+  const { path: guardPath } = traverse(guardCoords, matrix);
   return countUniqueCoordinates(guardPath);
 }
 
-const result = solve(file);
+function isCircular(matrix: Matrix, guard: Coordinates) {
+  const { circular } = traverse(guard, matrix);
+  return circular;
+}
 
-console.log("result: ", result);
+function addWall(matrix: Matrix, coords: Coordinates): Matrix {
+  const copy = matrix.map((column) => column.slice());
+  copy[coords[0]][coords[1]] = WALL;
+  return copy;
+}
+
+function solvePart2(file: string) {
+  const { matrix } = parse(file);
+  const guardCoords = findGuard(matrix);
+  let circularOptions = 0;
+  for (let columnIndex = 0; columnIndex < matrix.length; columnIndex++) {
+    const column = matrix[columnIndex];
+    for (let rowIndex = 0; rowIndex < column.length; rowIndex++) {
+      const char = column[rowIndex];
+      if (char === EMPTY) {
+        const matrixVariant = addWall(matrix, [columnIndex, rowIndex]);
+        if (isCircular(matrixVariant, guardCoords)) {
+          circularOptions++;
+        }
+      }
+    }
+  }
+  return circularOptions;
+}
+
+const part1 = solvePart1(file);
+const part2 = solvePart2(file);
+
+console.log("result: ", { part1, part2 });
