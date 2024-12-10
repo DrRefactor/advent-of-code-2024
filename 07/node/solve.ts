@@ -10,6 +10,7 @@ type EquationInput = {
 enum Operator {
   Multiply = "*",
   Add = "+",
+  Concatenate = "||",
 }
 
 const RESULT_SEPARATOR = ": ";
@@ -44,21 +45,25 @@ function calculate(numbers: number[], operators: Operator[]) {
     const currentNumber = numbers[i + 1];
     if (operator === Operator.Add) {
       return r + currentNumber;
-    } else {
+    } else if (operator === Operator.Multiply) {
       return r * currentNumber;
+    } else {
+      return +("" + r + currentNumber);
     }
   }, numbers[0]);
 }
 
-function generateAllOperators(length: number): Operator[][] {
-  let result: Operator[][] = [[Operator.Add], [Operator.Multiply]];
+function generateAllOperators(
+  length: number,
+  possibleOperators: Operator[]
+): Operator[][] {
+  let result: Operator[][] = possibleOperators.map((operator) => [operator]);
   let currentLength = 1;
   while (currentLength < length) {
     const newResult: Operator[][] = [];
     for (const operators of result) {
       newResult.push(
-        [...operators, Operator.Add],
-        [...operators, Operator.Multiply]
+        ...possibleOperators.map((operator) => [...operators, operator])
       );
     }
     result = newResult;
@@ -78,10 +83,22 @@ function memoize<A, R>(f: (a: A) => R): (a: A) => R {
   };
 }
 
-const generateAllOperatorsMemoized = memoize(generateAllOperators);
+const possibleOperators = {
+  task1: [Operator.Add, Operator.Multiply],
+  task2: [Operator.Add, Operator.Multiply, Operator.Concatenate],
+};
+const generateAllOperatorsForTask1Memoized = memoize((length: number) =>
+  generateAllOperators(length, possibleOperators.task1)
+);
+const generateAllOperatorsForTask2Memoized = memoize((length: number) =>
+  generateAllOperators(length, possibleOperators.task2)
+);
 
-function isEquationPossible(equationInput: EquationInput): boolean {
-  const operatorsVariants = generateAllOperatorsMemoized(
+function isEquationPossible(
+  equationInput: EquationInput,
+  generateAllOperators: (length: number) => Operator[][]
+): boolean {
+  const operatorsVariants = generateAllOperators(
     equationInput.elements.length - 1
   );
   for (const operators of operatorsVariants) {
@@ -94,12 +111,15 @@ function isEquationPossible(equationInput: EquationInput): boolean {
   return false;
 }
 
-function solve(fileLines: string[]): number {
+function solve(
+  fileLines: string[],
+  generateAllOperators: (length: number) => Operator[][]
+): number {
   const equations = parse(fileLines);
 
   let possibleEquationsSum = 0;
   for (const equation of equations) {
-    if (isEquationPossible(equation)) {
+    if (isEquationPossible(equation, generateAllOperators)) {
       possibleEquationsSum += equation.result;
     }
   }
@@ -108,8 +128,13 @@ function solve(fileLines: string[]): number {
 }
 
 let startTime = Date.now();
-const result = solve(file);
-const duration = Date.now() - startTime;
+const resultTask1 = solve(file, generateAllOperatorsForTask1Memoized);
+console.log(`task1 duration: ${Date.now() - startTime}ms`);
+startTime = Date.now();
+const resultTask2 = solve(file, generateAllOperatorsForTask2Memoized);
+console.log(`task2 duration: ${Date.now() - startTime}ms`);
 
-console.log("result: ", result);
-console.log(`duration: ${duration}ms`);
+console.log("result: ", {
+  task1: resultTask1,
+  task2: resultTask2,
+});
